@@ -123,7 +123,7 @@ def read_raw_dataset():
                 img_category_id = dataset[file_name]['category_id']
                 img_category = categories[img_category_id]['name']
                 out_path = OUT[dataset[file_name]['eval']]
-                img = load_img(DATASET_PATH + file_name, target_size=(224, 224))
+                img = load_img(DATASET_PATH + file_name, target_size=(150, 150))
                 # img = img.resize((320, 256), Image.ANTIALIAS)
 
                 x = img_to_array(img)

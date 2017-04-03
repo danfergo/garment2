@@ -46,13 +46,13 @@ def clean_folder():
     os.makedirs(OUT_VALIDATION_PATH)
 
 
-def setTreshold(x):
+def set_treshold(x):
     pass
     # threshold = x
 
 
-# cv2.namedWindow('image')
-# cv2.createTrackbar('threshold', 'image', 0, 200, setTreshold)
+cv2.namedWindow('image')
+cv2.createTrackbar('threshold', 'image', 0, 200, set_treshold)
 
 
 def read_raw_dataset():
@@ -71,76 +71,82 @@ def read_raw_dataset():
                 meta_data = yaml.load(meta_file)
 
                 img_file_name = meta_data['path_c']
-                # depth_file_name = meta_data['path_d']
+                depth_file_name = meta_data['path_d']
                 img_category = meta_data['type']
                 img_poly = meta_data['poly_c']
 
                 meta_file = open(path + file_name)
                 meta_data = yaml.load(meta_file)
 
-                # depth_img = cv2.imread(path + depth_file_name, -1)
-                # if depth_img is None:
-                #     continue
-                #
-                # x00 = depth_img[0+30, 0+20]
-                # x11 = depth_img[479-30, 639-40]
-                # x01 = depth_img[0+30, 639-40]
-                # x10 = depth_img[479-30, 0+20]
-                #
-                # v00 = np.array([0+30, 0+20, x00-1000], dtype=np.float64)
-                # v11 = np.array([479-30, 639-40, x11-1000], dtype=np.float64)
-                # v01 = np.array([0+30, 639-40, x01-1000], dtype=np.float64)
-                # v10 = np.array([479-30, 0+20, x10-1000], dtype=np.float64)
+                depth_img = cv2.imread(path + depth_file_name, -1)
+                if depth_img is None:
+                    continue
 
-                # print str(0+30) + ' ' + str(0+20) + ' ' + str(x00)
-                # print str(479-30) + ' ' + str(0+20) + ' ' + str(x11)
-                # print str(0+30) + ' ' + str(0+20) + ' ' + str(x01)
-                # print str(479-30) + ' ' + str(0+20) + ' ' + str(x10)
+                x00 = depth_img[0+30, 0+20]-1000
+                x11 = depth_img[479-30, 639-40]-1000
+                x01 = depth_img[0+30, 639-40]-1000
+                x10 = depth_img[479-30, 0+20]-1000
 
-                # v = v10 - v00
-                # h = v11 - v10
-                # p = np.cross(v, h)
-                #
-                # d = -1 * np.dot(p, v00)
-                #
-                # pl = np.array([p[0], p[1], p[2], d], dtype=np.float64)
+                v00 = np.array([0+30, 0+20, x00], dtype=np.float64)
+                v11 = np.array([479-30, 639-40, x11], dtype=np.float64)
+                v01 = np.array([0+30, 639-40, x01], dtype=np.float64)
+                v10 = np.array([479-30, 0+20, x10], dtype=np.float64)
 
-                # print pl
+                print str(0+30) + ' ' + str(0+20) + ' ' + str(x00)
+                print str(479-30) + ' ' + str(0+20) + ' ' + str(x11)
+                print str(0+30) + ' ' + str(0+20) + ' ' + str(x01)
+                print str(479-30) + ' ' + str(0+20) + ' ' + str(x10)
+                print "--------------"
+
+                v = v10 - v00
+                h = v11 - v10
+                p = np.cross(v, h)
+                d = -1 * np.dot(p, v00)
+                print p
+                print d
+
+                print "--------------------"
+                pl = np.array([p[0], p[1], p[2], d], dtype=np.float64)
+
                 # print "--------------------"
-                # depth_img_pil = load_img(path + depth_file_name)
+                # depth_img_pil = load_img()
                 # depth_img = img_to_array(depth_img_pil)
-                # h, w = depth_img.shape
+                # depth_img = cv2.imread(path + depth_file_name, cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
+                # depth_img = cv2.cvtColor(depth_img, cv2.COLOR_BGR2GRAY)
+                h, w = depth_img.shape
+                # print depth_img[100, 100]
+
+
                 # 640, 480
-                # print depth_img.shape
-                # segmentation_mask = np.zeros((h, w, 3), np.uint8)
+                segmentation_mask = np.zeros((h, w, 3), np.uint8)
 
                 # print threshold
-                # for i in range(0, h):
-                #     for j in range(0, w):
-                #         # print int(depth_img[i, j])
-                #         pp = np.array([i, j, depth_img[i, j]-1000, 1], dtype=np.float64)
-                #         r = np.dot(pl, pp)
-                #         print r
-                #
-                #         if 0 > r:
-                #             segmentation_mask[i, j] = (255, 255, 255)
-                #         else:
-                #             segmentation_mask[i, j] = (0, 0, 0)
-                #         # print "--------------"
-                #         # if not (depth_img[xx, yy][0] == 255
-                #         #         and depth_img[xx, yy][1] == 255
-                #         #         and depth_img[xx, yy][2] == 255)\
-                #         #     and not (depth_img[xx, yy][0] == 0
-                #         #              and depth_img[xx, yy][1] == 0
-                #         #              and depth_img[xx, yy][2] == 0):
-                #         #     print depth_img[xx, yy]
+                for i in range(0, h):
+                    for j in range(0, w):
+                        # print int(depth_img[i, j])
+                        pp = np.array([i, j, depth_img[i, j], 1], dtype=np.float64)
+                        r = np.dot(pl, pp)
+                        # print threshold
+
+                        if depth_img[i, j] > threshold:
+                            segmentation_mask[i, j] = (255, 255, 255)
+                        else:
+                            segmentation_mask[i, j] = (0, 0, 0)
+                        # print "--------------"
+                        # if not (depth_img[xx, yy][0] == 255
+                        #         and depth_img[xx, yy][1] == 255
+                        #         and depth_img[xx, yy][2] == 255)\
+                        #     and not (depth_img[xx, yy][0] == 0
+                        #              and depth_img[xx, yy][1] == 0
+                        #              and depth_img[xx, yy][2] == 0):
+                        #     print depth_img[xx, yy]
 
                 # print depth_img[479, 639]
 
                 img_pil = load_img(path + img_file_name)
                 img_pil = img_pil.resize((1280/RS_F, 1024/RS_F), Image.ANTIALIAS)
 
-                img = img_to_array(img_pil)
+                # img = img_to_array(img_pil)
 
                 if img_category in counter_per_cat:
                     counter_per_cat[img_category] += 1
@@ -156,19 +162,19 @@ def read_raw_dataset():
                          '/' + img_category +
                          '/' + str(counter_per_cat[img_category]).zfill(4) + '.jpeg')
 
-                xx = img.astype(np.uint8)
-                for m in img_poly:
-                    cv2.circle(xx, (int(m[0]/RS_F), int(m[1]/RS_F)), 5, (0, 0, 255), 1)
+                # xx = img.astype(np.uint8)
+                # for m in img_poly:
+                #     cv2.circle(xx, (int(m[0]/RS_F), int(m[1]/RS_F)), 5, (0, 0, 255), 1)
                 # cv2.circle(segmentation_mask, (int(0+20), int(0+30)), 5, (0, 0, 255), 1)
                 # cv2.circle(segmentation_mask, (int(0+20), int(479-30)), 5, (0, 0, 255), 1)
                 # cv2.circle(segmentation_mask, (int(639-40), int(479-30)), 5, (0, 0, 255), 1)
                 # cv2.circle(segmentation_mask, (int(639-40), int(0+30)), 5, (0, 0, 255), 1)
 
-                cv2.imshow("image", xx)
-                cv2.setWindowTitle("image",
-                                   'Ttl: ' + str(valid_counter).zfill(4).ljust(10) +
-                                   'Cat: ' + img_category.ljust(15) +
-                                   '/cat: ' + str(counter_per_cat[img_category]).zfill(3).ljust(6))
+                # cv2.imshow("image", segmentation_mask)
+                # cv2.setWindowTitle("image",
+                #                    'Ttl: ' + str(valid_counter).zfill(4).ljust(10) +
+                #                    'Cat: ' + img_category.ljust(15) +
+                #                    '/cat: ' + str(counter_per_cat[img_category]).zfill(3).ljust(6))
                 cv2.waitKey(1)
 
             except Exception as e:
